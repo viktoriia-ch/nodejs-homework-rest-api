@@ -1,16 +1,16 @@
-const contacts = require("../models/contacts");
+const { Contact } = require("../models/contact");
 
 const { ctrlWrapper } = require("../utils");
 const { HttpError } = require("../helpers");
 
 const getAllContacts = async (_, res) => {
-  const result = await contacts.listContacts();
+  const result = await Contact.find();
   res.json(result);
 };
 
 const getContactById = async (req, res) => {
   const { contactId } = req.params;
-  const contact = await contacts.getContactById(contactId);
+  const contact = await Contact.findById(contactId);
   if (!contact) {
     throw HttpError(404);
   }
@@ -18,8 +18,8 @@ const getContactById = async (req, res) => {
 };
 
 const addContact = async (req, res) => {
-  const { name, email, phone } = req.body;
-  const newContact = await contacts.addContact(name, email, phone);
+  console.log(req.body);
+  const newContact = await Contact.create(req.body);
   res.status(201).json(newContact);
 };
 
@@ -28,22 +28,37 @@ const updateContactById = async (req, res) => {
   if (Object.keys(req.body).length === 0) {
     throw HttpError(400, "missing fields");
   }
-  const updatedContact = await contacts.updateContact(contactId, req.body);
-  if (!updatedContact) {
-    throw HttpError(404, "Not found!");
+  const contactForUpdate = await Contact.findByIdAndUpdate(
+    contactId,
+    req.body,
+    {
+      new: true,
+    }
+  );
+  if (!contactForUpdate) {
+    throw HttpError(404);
   }
-  res.json(updatedContact);
+  res.json(contactForUpdate);
 };
 
 const removeContactById = async (req, res) => {
   const { contactId } = req.params;
-  const contactForRemove = await contacts.removeContact(contactId);
+  const contactForRemove = await Contact.findByIdAndDelete(contactId);
   if (!contactForRemove) {
-    throw HttpError(404, "Not found!");
+    throw HttpError(404);
   }
   res.json({
     message: "contact deleted!",
   });
+};
+
+const updateStatusContact = async (req, res) => {
+  const { contactId } = req.params;
+  const contactForUpdate = await Contact.findByIdAndUpdate(contactId, req.body);
+  if (!contactForUpdate) {
+    throw HttpError(404);
+  }
+  res.json(contactForUpdate);
 };
 
 module.exports = {
@@ -52,4 +67,5 @@ module.exports = {
   addContact: ctrlWrapper(addContact),
   updateContactById: ctrlWrapper(updateContactById),
   removeContactById: ctrlWrapper(removeContactById),
+  updateStatusContact: ctrlWrapper(updateStatusContact),
 };
