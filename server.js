@@ -14,5 +14,3 @@ mongoose
     console.log(error.message);
     process.exit(1);
   });
-
-//l44m56guk2CcCkDm
